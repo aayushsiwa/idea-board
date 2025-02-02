@@ -1,14 +1,14 @@
+import toggleTheme from "./toggleTheme";
+
 function Navbar() {
-  return (
-    <>
-      <nav className="bg-gray-800 h-16">
-        {/* brand-name */}
-        <div className="text-3xl text-zinc-50">
-          IdeaBoard
-        </div>
-      </nav>
-    </>
-  )
+    return (
+        <nav className="h-16 bg-muted backdrop-blur-2xl text-primary flex items-center justify-between px-4 min-w-[33vw] max-w-fit rounded-md">
+            <div className="text-xl cursor-pointer select-none">IdeaBoard</div>
+            <button className="" onClick={toggleTheme}>
+                Theme
+            </button>
+        </nav>
+    );
 }
 
-export default Navbar
+export default Navbar;
