@@ -3,6 +3,7 @@ import Navbar from "./components/Navbar";
 import Compose from "./components/uiComponents/Compose";
 import generateUniqueId from "./components/randomId";
 import NoteList from "./components/NoteList";
+import { Analytics } from "@vercel/analytics/react";
 
 function App() {
     const [showCompose, setShowCompose] = useState(false);
@@ -73,6 +74,7 @@ function App() {
 
     return (
         <>
+            <Analytics />
             <div className="bg-background min-h-screen flex flex-col">
                 <div className="flex items-center justify-center pt-4">
                     <Navbar />
@@ -94,7 +96,11 @@ function App() {
                         )}
                     </div>
                 </div>
-                <NoteList notes={notes} onEdit={handleEditNote} onDelete={handleDeleteNote} />
+                <NoteList
+                    notes={notes}
+                    onEdit={handleEditNote}
+                    onDelete={handleDeleteNote}
+                />
             </div>
         </>
     );
