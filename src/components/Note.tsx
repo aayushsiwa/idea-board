@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { updateNote } from "../../firebase"; // Import the updateNote function
 
 const Note = ({
     note,
@@ -14,9 +15,11 @@ const Note = ({
     const [editedBody, setEditedBody] = useState(note.body);
     const noteRef = useRef<HTMLDivElement>(null);
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (editedTitle !== note.title || editedBody !== note.body) {
-            onEdit({ ...note, title: editedTitle, body: editedBody });
+            const updatedNote = { ...note, title: editedTitle, body: editedBody, lastEdited: Date.now() };
+            await updateNote(updatedNote); // Update the note in Firebase
+            onEdit(updatedNote);
         }
         setIsEditing(false);
     };
@@ -57,7 +60,7 @@ const Note = ({
                             type="text"
                             value={editedTitle}
                             onChange={(e) => setEditedTitle(e.target.value)}
-                            className="font-bold capitalize w-full h-[15%] text-center p-1 border-border border-t border-r border-l text-primary"
+                            className="font-bold w-full h-[15%] text-center p-1 border-border border-t border-r border-l text-primary"
                         />
                         <textarea
                             value={editedBody}
@@ -68,7 +71,7 @@ const Note = ({
                 ) : (
                     <>
                         <h2
-                            className="font-bold capitalize h-[15%] p-1 text-primary"
+                            className="font-bold h-[15%] p-1 text-primary"
                             onClick={() => setIsEditing(true)}
                         >
                             {note.title}

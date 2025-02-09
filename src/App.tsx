@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Compose from "./components/uiComponents/Compose";
 import generateUniqueId from "./components/randomId";
-import NoteList from "./components/NoteList";
+import NoteList from "./components/uiComponents/NoteList";
 import { Analytics } from "@vercel/analytics/react";
+import { getNotes, addNote, deleteNote } from "../firebase"; // Import Firebase functions
 
 function App() {
     const [showCompose, setShowCompose] = useState(false);
@@ -17,15 +18,18 @@ function App() {
     } | null>(null);
 
     useEffect(() => {
-        const storedNotes = JSON.parse(localStorage.getItem("notes") || "[]");
-        setNotes(storedNotes);
+        const fetchNotes = async () => {
+            const storedNotes = await getNotes() as { lastEdited: number; id: string; title: string; body: string }[]; // Fetch notes from Firebase
+            setNotes(storedNotes);
+        };
+        fetchNotes();
     }, []);
 
     const handleComposeClick = () => {
         setShowCompose(true);
     };
 
-    const handleSaveNote = (note: { title: string; body: string }) => {
+    const handleSaveNote = async (note: { title: string; body: string }) => {
         let updatedNotes;
         if (editingNote) {
             updatedNotes = notes.map((n) =>
@@ -39,15 +43,15 @@ function App() {
                 id: generateUniqueId(),
                 ...note,
             };
+            await addNote(newNote); // Add the new note to Firebase
             updatedNotes = [newNote, ...notes];
         }
         setNotes(updatedNotes.sort((a, b) => b.lastEdited - a.lastEdited));
-        localStorage.setItem("notes", JSON.stringify(updatedNotes));
         setShowCompose(false);
         setEditingNote(null);
     };
 
-    const handleEditNote = (note: {
+    const handleEditNote = async (note: {
         id: string;
         title: string;
         body: string;
@@ -58,13 +62,12 @@ function App() {
                 : n
         );
         setNotes(updatedNotes.sort((a, b) => b.lastEdited - a.lastEdited));
-        localStorage.setItem("notes", JSON.stringify(updatedNotes));
     };
 
-    const handleDeleteNote = (id: string) => {
+    const handleDeleteNote = async (id: string) => {
+        await deleteNote(id); // Delete the note from Firebase
         const updatedNotes = notes.filter((note) => note.id !== id);
         setNotes(updatedNotes);
-        localStorage.setItem("notes", JSON.stringify(updatedNotes));
     };
 
     const handleCloseCompose = () => {

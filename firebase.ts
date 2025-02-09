@@ -13,6 +13,7 @@ import {
     User,
     signInWithPopup,
 } from "firebase/auth";
+import { getDatabase, ref, set, get, remove, child } from "firebase/database"; // Import Firebase Realtime Database functions
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -36,6 +37,8 @@ googleProvider.setCustomParameters({
 });
 
 const githubProvider = new GithubAuthProvider();
+
+const db = getDatabase(app); // Initialize Realtime Database
 
 export const signIn = (email: string, password: string) =>
     signInWithEmailAndPassword(auth, email, password);
@@ -84,6 +87,47 @@ export const handleGitHubSignIn = async () => {
         // navigate("/restricted"); // Redirect to /restricted on successful sign-in
     } catch (error) {
         alert("GitHub sign-in error: " + (error as Error).message);
+    }
+};
+
+export const addNote = async (note: { id: string; title: string; body: string; lastEdited: number }) => {
+    try {
+        await set(ref(db, 'notes/' + note.id), note);
+    } catch (error) {
+        console.error("Error adding note:", error);
+        throw error;
+    }
+};
+
+export const updateNote = async (note: { id: string; title: string; body: string; lastEdited: number }) => {
+    try {
+        await set(ref(db, 'notes/' + note.id), note);
+    } catch (error) {
+        console.error("Error updating note:", error);
+        throw error;
+    }
+};
+
+export const deleteNote = async (id: string) => {
+    try {
+        await remove(ref(db, 'notes/' + id));
+    } catch (error) {
+        console.error("Error deleting note:", error);
+        throw error;
+    }
+};
+
+export const getNotes = async () => {
+    try {
+        const snapshot = await get(child(ref(db), 'notes'));
+        if (snapshot.exists()) {
+            return Object.values(snapshot.val());
+        } else {
+            return [];
+        }
+    } catch (error) {
+        console.error("Error fetching notes:", error);
+        throw error;
     }
 };
 
