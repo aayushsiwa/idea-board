@@ -4,7 +4,8 @@ import Compose from "./components/uiComponents/Compose";
 import generateUniqueId from "./components/randomId";
 import NoteList from "./components/uiComponents/NoteList";
 import { Analytics } from "@vercel/analytics/react";
-import { getNotes, addNote, deleteNote } from "../firebase"; // Import Firebase functions
+import { getNotes, addNote, updateNote, deleteNote } from "../firebase"; // Import Firebase functions
+import { auth } from "../firebase"; // Import auth to get the current user
 
 function App() {
     const [showCompose, setShowCompose] = useState(false);
@@ -16,20 +17,35 @@ function App() {
         title: string;
         body: string;
     } | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchNotes = async () => {
-            const storedNotes = await getNotes() as { lastEdited: number; id: string; title: string; body: string }[]; // Fetch notes from Firebase
-            setNotes(storedNotes);
-        };
-        fetchNotes();
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            if (user) {
+                setUserId(user.uid);
+            } else {
+                setUserId(null);
+            }
+        });
+        return () => unsubscribe();
     }, []);
+
+    useEffect(() => {
+        if (userId) {
+            const fetchNotes = async () => {
+                const storedNotes = await getNotes(userId) as { lastEdited: number; id: string; title: string; body: string }[]; // Fetch notes from Firebase
+                setNotes(storedNotes);
+            };
+            fetchNotes();
+        }
+    }, [userId]);
 
     const handleComposeClick = () => {
         setShowCompose(true);
     };
 
     const handleSaveNote = async (note: { title: string; body: string }) => {
+        if (!userId) return;
         let updatedNotes;
         if (editingNote) {
             updatedNotes = notes.map((n) =>
@@ -43,7 +59,7 @@ function App() {
                 id: generateUniqueId(),
                 ...note,
             };
-            await addNote(newNote); // Add the new note to Firebase
+            await addNote(userId, newNote); // Add the new note to Firebase with userId
             updatedNotes = [newNote, ...notes];
         }
         setNotes(updatedNotes.sort((a, b) => b.lastEdited - a.lastEdited));
@@ -56,16 +72,18 @@ function App() {
         title: string;
         body: string;
     }) => {
+        if (!userId) return;
+        const updatedNote = { ...note, lastEdited: new Date().getTime() };
+        await updateNote(userId, updatedNote); // Update the note in Firebase with userId
         const updatedNotes = notes.map((n) =>
-            n.id === note.id
-                ? { ...n, ...note, lastEdited: new Date().getTime() }
-                : n
+            n.id === note.id ? updatedNote : n
         );
         setNotes(updatedNotes.sort((a, b) => b.lastEdited - a.lastEdited));
     };
 
     const handleDeleteNote = async (id: string) => {
-        await deleteNote(id); // Delete the note from Firebase
+        if (!userId) return;
+        await deleteNote(userId, id); // Delete the note from Firebase with userId
         const updatedNotes = notes.filter((note) => note.id !== id);
         setNotes(updatedNotes);
     };

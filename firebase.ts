@@ -90,36 +90,36 @@ export const handleGitHubSignIn = async () => {
     }
 };
 
-export const addNote = async (note: { id: string; title: string; body: string; lastEdited: number }) => {
+export const addNote = async (userId: string, note: { id: string; title: string; body: string; lastEdited: number }) => {
     try {
-        await set(ref(db, 'notes/' + note.id), note);
+        await set(ref(db, `notes/${userId}/${note.id}`), note);
     } catch (error) {
         console.error("Error adding note:", error);
         throw error;
     }
 };
 
-export const updateNote = async (note: { id: string; title: string; body: string; lastEdited: number }) => {
+export const updateNote = async (userId: string, note: { id: string; title: string; body: string; lastEdited: number }) => {
     try {
-        await set(ref(db, 'notes/' + note.id), note);
+        await set(ref(db, `notes/${userId}/${note.id}`), note);
     } catch (error) {
         console.error("Error updating note:", error);
         throw error;
     }
 };
 
-export const deleteNote = async (id: string) => {
+export const deleteNote = async (userId: string, id: string) => {
     try {
-        await remove(ref(db, 'notes/' + id));
+        await remove(ref(db, `notes/${userId}/${id}`));
     } catch (error) {
         console.error("Error deleting note:", error);
         throw error;
     }
 };
 
-export const getNotes = async () => {
+export const getNotes = async (userId: string) => {
     try {
-        const snapshot = await get(child(ref(db), 'notes'));
+        const snapshot = await get(child(ref(db), `notes/${userId}`));
         if (snapshot.exists()) {
             return Object.values(snapshot.val());
         } else {

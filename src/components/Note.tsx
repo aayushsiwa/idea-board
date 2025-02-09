@@ -3,10 +3,12 @@ import { updateNote } from "../../firebase"; // Import the updateNote function
 
 const Note = ({
     note,
+    userId, // Add userId prop
     onEdit,
     onDelete,
 }: {
     note: { id: string; title: string; body: string };
+    userId: string; // Add userId type
     onEdit: (note: { id: string; title: string; body: string }) => void;
     onDelete: (id: string) => void;
 }) => {
@@ -18,7 +20,7 @@ const Note = ({
     const handleSave = async () => {
         if (editedTitle !== note.title || editedBody !== note.body) {
             const updatedNote = { ...note, title: editedTitle, body: editedBody, lastEdited: Date.now() };
-            await updateNote(updatedNote); // Update the note in Firebase
+            await updateNote(userId, updatedNote); // Update the note in Firebase with userId
             onEdit(updatedNote);
         }
         setIsEditing(false);
