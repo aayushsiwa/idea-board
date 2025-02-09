@@ -117,11 +117,14 @@ function App() {
                         )}
                     </div>
                 </div>
-                <NoteList
-                    notes={notes}
-                    onEdit={handleEditNote}
-                    onDelete={handleDeleteNote}
-                />
+                {userId && (
+                    <NoteList
+                        notes={notes}
+                        onEdit={handleEditNote}
+                        onDelete={handleDeleteNote}
+                        userId={userId}
+                    />
+                )}
             </div>
         </>
     );
